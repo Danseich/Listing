@@ -4,6 +4,7 @@ from django.db import models
 class FirstModel(models.Model):
     name = models.CharField('Название', max_length=50)
     value = models.IntegerField('Некое значение')
+    #nomber__of__something = models.IntegerField()  Неправильное поле
 
     def __str__(self):
         return self.name
@@ -144,7 +145,7 @@ class Soul(models.Model):
         if self.hair_color == "Gi":
             return
         else:
-            super().save(*args, **kwards)
+            super().save()
 
 
 class PersonInfo(models.Model):
@@ -174,5 +175,16 @@ class Teacher(PersonInfo):
     class Meta:
         verbose_name = "Учитель"
         verbose_name_plural = "Учителя"
+
+
+class MyPersonSlave(PersonInfo):
+    class Meta:
+        proxy = True
+
+    def do_work(self, task):
+        self.task = task
+        self.task_note = f"Сейчас я делаю {task}."
+        self.tired = True
+
 
 
