@@ -157,6 +157,12 @@ class PersonInfo(models.Model):
     }
     sex = models.CharField("Пол", choices=SEX)
 
+    def get_full_name(self) -> str:
+        return ' '.join(filter(bool, [self.surname, self.firstname, self.patronymic]))
+
+    def __str__(self):
+        return self.get_full_name()
+
     class Meta:
         abstract = True
 
