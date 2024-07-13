@@ -4,10 +4,17 @@ from django.db import models
 class FirstModel(models.Model):
     name = models.CharField('Название', max_length=50)
     value = models.IntegerField('Некое значение')
+    link = models.ForeignKey(self, related_name="%(app_label)s_%(class)s")
+    manager = models.Manager()
     #nomber__of__something = models.IntegerField()  Неправильное поле
+    #max = models.CharField()
+    #yoo_ = models.OneToOneField()
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        db_table = 'default'
 
 
 class Mom(models.Model):
@@ -167,12 +174,31 @@ class PersonInfo(models.Model):
         abstract = True
 
 
+class Groupe(models.Model):
+    name = models.CharField("Название", max_length=50)
+    groupe_id = models.AutoField(primary_key=True)
+
+    class Meta:
+        verbose_name = "Группа"
+        verbose_name_plural = "Группы"
+
+    def __str__(self):
+        self.name
+
+
 class Student(PersonInfo):
-    group = models.CharField("Группа", max_length=10)
+    group = models.ManyToManyField(Groupe, through=GroupeInfo, related_name="Группа")
+    avatar = models.ImageField("Фото")
 
     class Meta:
         verbose_name = "Ученик"
         verbose_name_plural = "Ученики"
+
+
+class GroupeInfo(models.Model):
+    student = models.ForeignKey(Student, related_name="Студент")
+    groupe = models.ForeignKey(Groupe, related_name="Группа")
+    list_number = models.IntegerField("Номер по списку")
 
 
 class Teacher(PersonInfo):
