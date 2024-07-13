@@ -3,8 +3,9 @@ from django.db import models
 
 class FirstModel(models.Model):
     name = models.CharField('Название', max_length=50)
-    value = models.IntegerField('Некое значение')
-    link = models.ForeignKey(self, related_name="%(app_label)s_%(class)s")
+    something = models.TextField("Текстовое поле", null = True)
+    value = models.IntegerField('Некое значение', blank= True)
+    link = models.ForeignKey('self', related_name="%(app_label)s_%(class)s")
     manager = models.Manager()
     #nomber__of__something = models.IntegerField()  Неправильное поле
     #max = models.CharField()
@@ -15,6 +16,7 @@ class FirstModel(models.Model):
 
     class Meta:
         db_table = 'default'
+        indexes = models.Index(fields=["name", "something"])
 
 
 class Mom(models.Model):
@@ -25,13 +27,14 @@ class Mom(models.Model):
     SEX = {
         ("M", "Male"),
         ("F", "Female"),
+        ("N", "Neither"),
     }
 
     sex = models.CharField("Пол", choices=SEX)
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
-    weight = models.FloatField("Вес")
+    weight = models.FloatField("Вес", help_text="В киллограммах")
     IQ = models.IntegerField("Показатель интелекта")
 
     def get_full_name(self) -> str:
@@ -49,15 +52,11 @@ class Dad(models.Model):
     surname = models.CharField("Фамилия", max_length=30)
     patronymic = models.CharField("Отчество", max_length=30)
     # Качества
-    SEX = {
-        ("M", "Male"),
-        ("F", "Female"),
-    }
-    sex = models.CharField("Пол", choices=SEX)
+    sex = models.CharField("Пол", choices= {("M", "Male"),("F", "Female"), ("N", "Neither"),})
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
-    weight = models.FloatField("Вес")
+    weight = models.FloatField("Вес", help_text="В киллограммах")
     bread = models.BooleanField("Bread")
 
     def get_full_name(self) -> str:
@@ -79,8 +78,8 @@ class Child(Mom, Dad):
 
 
 class ClothingCompany(models.Model):
-    name = models.CharField("Название", max_length=100)
-    capital = models.BigIntegerField("Капитал")
+    name = models.CharField("Название", max_length=100, unique=True)
+    capital = models.BigIntegerField("Капитал", db_comment="По последним данным")
     address = models.CharField("Адрес", max_length=100)
 
     class Meta:
@@ -119,7 +118,7 @@ class Park(models.Model):
 
 
 class Breed(models.Model):
-    name = models.CharField("Название", max_length=30)
+    name = models.CharField("Название", max_length=30, default="Дворняга", editable=True)
 
     class Meta:
         verbose_name = "Порода"
@@ -157,10 +156,11 @@ class Soul(models.Model):
 
 class PersonInfo(models.Model):
     name = models.CharField("Имя", max_length=50)
-    age = models.PositiveIntegerField("Возраст")
+    birth = models.DateField("Дата рождения", help_text="Укажите в формате ДД.ММ.ГГГГ")
     SEX = {
         ("M", "Male"),
         ("F", "Female"),
+        ("N", "Neither"),
     }
     sex = models.CharField("Пол", choices=SEX)
 
@@ -181,14 +181,15 @@ class Groupe(models.Model):
     class Meta:
         verbose_name = "Группа"
         verbose_name_plural = "Группы"
+        ordering = ["name"]
 
     def __str__(self):
-        self.name
+        return self.name
 
 
 class Student(PersonInfo):
     group = models.ManyToManyField(Groupe, through=GroupeInfo, related_name="Группа")
-    avatar = models.ImageField("Фото")
+    avatar = models.ImageField("Фото", upload_to="media/")
 
     class Meta:
         verbose_name = "Ученик"
@@ -203,6 +204,7 @@ class GroupeInfo(models.Model):
 
 class Teacher(PersonInfo):
     grade = models.CharField("Степень", max_length=15)
+    email = models.EmailField("Почта")
 
     class Meta:
         verbose_name = "Учитель"
@@ -219,4 +221,13 @@ class MyPersonSlave(PersonInfo):
         self.tired = True
 
 
+class Report(models.Model):
+    name = models.CharField("Название", max_length=50)
+    data = models.JSONField("Данные")
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Отчет"
+        verbose_name_plural = "Отчеты"
