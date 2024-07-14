@@ -1,20 +1,23 @@
 from django.db import models
 
 
+# Первая модель показывает основные принципы создания моделей
 class FirstModel(models.Model):
     name = models.CharField('Название', max_length=50)
-    something = models.TextField("Текстовое поле", null = True)
-    value = models.IntegerField('Некое значение', blank= True)
-    link = models.ForeignKey('self', related_name="%(app_label)s_%(class)s")
+    something = models.TextField("Текстовое поле", null=True)
+    value = models.IntegerField('Некое значение', blank=True)
+    link = models.ForeignKey(
+        'self', related_name="%(app_label)s_%(class)s", on_delete=models.DO_NOTHING
+                             )  # Название будет менятся в зависимости от класса и приложения
     manager = models.Manager()
-    #nomber__of__something = models.IntegerField()  Неправильное поле
-    #max = models.CharField()
-    #yoo_ = models.OneToOneField()
+    # nomber__of__something = models.IntegerField()  Неправильное поле
+    # max = models.CharField()
+    # yoo_ = models.OneToOneField()
 
-    def __str__(self):
+    def __str__(self):  # Метод для отображения имени
         return self.name
 
-    class Meta:
+    class Meta:  # Доп настройки
         db_table = 'default'
         indexes = models.Index(fields=["name", "something"])
 
@@ -29,15 +32,15 @@ class Mom(models.Model):
         ("F", "Female"),
         ("N", "Neither"),
     }
-
-    sex = models.CharField("Пол", choices=SEX)
+    # Словарь с чейсами
+    sex = models.CharField("Пол", choices=SEX)  # Использование чейсов
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
-    weight = models.FloatField("Вес", help_text="В киллограммах")
+    weight = models.FloatField("Вес", help_text="В киллограммах")  # Пример вспомогательного текста
     IQ = models.IntegerField("Показатель интелекта")
 
-    def get_full_name(self) -> str:
+    def get_full_name(self) -> str:  # Кастомный метод
         return ' '.join(filter(bool, [self.surname, self.firstname, self.patronymic]))
 
     def __str__(self):
@@ -52,7 +55,8 @@ class Dad(models.Model):
     surname = models.CharField("Фамилия", max_length=30)
     patronymic = models.CharField("Отчество", max_length=30)
     # Качества
-    sex = models.CharField("Пол", choices= {("M", "Male"),("F", "Female"), ("N", "Neither"),})
+    sex = models.CharField("Пол", choices={("M", "Male"), ("F", "Female"), ("N", "Neither")})
+    # Альтернативный вариант использования чейсов
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
@@ -69,9 +73,9 @@ class Dad(models.Model):
         verbose_name = "Папа"
 
 
-class Child(Mom, Dad):
-    mom = models.OneToOneField(Mom, related_name="Мама", verbose_name="Ребенок")
-    dad = models.OneToOneField(Dad, related_name="Папа", verbose_name="Ребенок")
+class Child(Mom, Dad):  # Пример наследования
+    mom = models.OneToOneField(Mom, related_name="Мама", verbose_name="Ребенок", on_delete=models.PROTECT)
+    dad = models.OneToOneField(Dad, related_name="Папа", verbose_name="Ребенок", on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = "Ребенок"
@@ -80,6 +84,7 @@ class Child(Mom, Dad):
 class ClothingCompany(models.Model):
     name = models.CharField("Название", max_length=100, unique=True)
     capital = models.BigIntegerField("Капитал", db_comment="По последним данным")
+    # Коментарий к базе данных
     address = models.CharField("Адрес", max_length=100)
 
     class Meta:
@@ -102,6 +107,7 @@ class TShirt(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Футболки"
     )
+    # Связь с другой моделью
 
     class Meta:
         verbose_name = "Футболка"
@@ -147,7 +153,7 @@ class Soul(models.Model):
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
+    ):  # Переопределение метода
         if self.hair_color == "Gi":
             return
         else:
@@ -164,14 +170,11 @@ class PersonInfo(models.Model):
     }
     sex = models.CharField("Пол", choices=SEX)
 
-    def get_full_name(self) -> str:
-        return ' '.join(filter(bool, [self.surname, self.firstname, self.patronymic]))
-
     def __str__(self):
-        return self.get_full_name()
+        return self.name
 
     class Meta:
-        abstract = True
+        abstract = True  # Абстрактная модель
 
 
 class Groupe(models.Model):
@@ -181,15 +184,15 @@ class Groupe(models.Model):
     class Meta:
         verbose_name = "Группа"
         verbose_name_plural = "Группы"
-        ordering = ["name"]
+        ordering = ["name"]  # Настройки Meta
 
     def __str__(self):
         return self.name
 
 
 class Student(PersonInfo):
-    group = models.ManyToManyField(Groupe, through=GroupeInfo, related_name="Группа")
-    avatar = models.ImageField("Фото", upload_to="media/")
+    group = models.ManyToManyField(Groupe, through=GroupeInfo, related_name="Группа")  # Плюс поля GropeInfo
+    avatar = models.ImageField("Фото", upload_to="media/")  # Изображение (так же раюотает как FileField)
 
     class Meta:
         verbose_name = "Ученик"
@@ -197,8 +200,8 @@ class Student(PersonInfo):
 
 
 class GroupeInfo(models.Model):
-    student = models.ForeignKey(Student, related_name="Студент")
-    groupe = models.ForeignKey(Groupe, related_name="Группа")
+    student = models.ForeignKey(Student, related_name="Студент", on_delete=models.PROTECT)
+    groupe = models.ForeignKey(Groupe, related_name="Группа", on_delete=models.PROTECT)
     list_number = models.IntegerField("Номер по списку")
 
 
