@@ -19,7 +19,7 @@ class FirstModel(models.Model):
 
     class Meta:  # Доп настройки
         db_table = 'default'
-        indexes = models.Index(fields=["name", "something"])
+        # indexes = models.Index(fields=["name", "something"])
 
 
 class Mom(models.Model):
