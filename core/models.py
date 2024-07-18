@@ -4,10 +4,10 @@ from django.db import models
 # Первая модель показывает основные принципы создания моделей
 class FirstModel(models.Model):
     name = models.CharField('Название', max_length=50)
-    something = models.TextField("Текстовое поле", null=True)
+    something = models.TextField("Текстовое поле", null=True, blank=True)
     value = models.IntegerField('Некое значение', blank=True)
     link = models.ForeignKey(
-        'self', related_name="%(app_label)s_%(class)s", on_delete=models.DO_NOTHING
+        'self', related_name="%(app_label)s_%(class)s", on_delete=models.DO_NOTHING, null=True, blank=True
                              )  # Название будет менятся в зависимости от класса и приложения
     manager = models.Manager()
     # nomber__of__something = models.IntegerField()  Неправильное поле
@@ -25,7 +25,7 @@ class FirstModel(models.Model):
 class Mom(models.Model):
     firstname = models.CharField("Имя", max_length=30)
     surname = models.CharField("Фамилия", max_length=30)
-    patronymic = models.CharField("Отчество", max_length=30)
+    patronymic = models.CharField("Отчество", max_length=30, null=True)
     # Качества
     SEX = {
         ("M", "Male"),
@@ -33,7 +33,7 @@ class Mom(models.Model):
         ("N", "Neither"),
     }
     # Словарь с чейсами
-    sex = models.CharField("Пол", choices=SEX)  # Использование чейсов
+    sex = models.CharField("Пол", choices=SEX, max_length=20)  # Использование чейсов
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
@@ -48,20 +48,21 @@ class Mom(models.Model):
 
     class Meta:
         verbose_name = "Мама"
+        abstract = True
 
 
 class Dad(models.Model):
     firstname = models.CharField("Имя", max_length=30)
     surname = models.CharField("Фамилия", max_length=30)
-    patronymic = models.CharField("Отчество", max_length=30)
+    patronymic = models.CharField("Отчество", max_length=30, null=True)
     # Качества
-    sex = models.CharField("Пол", choices={("M", "Male"), ("F", "Female"), ("N", "Neither")})
+    sex = models.CharField("Пол", choices={("M", "Male"), ("F", "Female"), ("N", "Neither")}, max_length=20)
     # Альтернативный вариант использования чейсов
     age = models.PositiveIntegerField("Возраст")
     eye_color = models.CharField("Цвет глаз", max_length=20)
     height = models.FloatField("Рост")
     weight = models.FloatField("Вес", help_text="В киллограммах")
-    bread = models.BooleanField("Bread")
+    bread = models.BooleanField("Борода")
 
     def get_full_name(self) -> str:
         return ' '.join(filter(bool, [self.surname, self.firstname, self.patronymic]))
@@ -71,24 +72,27 @@ class Dad(models.Model):
 
     class Meta:
         verbose_name = "Папа"
+        abstract = True
 
 
 class Child(Mom, Dad):  # Пример наследования
-    mom = models.OneToOneField(Mom, related_name="Мама", verbose_name="Ребенок", on_delete=models.PROTECT)
-    dad = models.OneToOneField(Dad, related_name="Папа", verbose_name="Ребенок", on_delete=models.PROTECT)
+    # mom = models.OneToOneField(Mom, related_name="Мама", verbose_name="Ребенок", on_delete=models.PROTECT)
+    # dad = models.OneToOneField(Dad, related_name="Папа", verbose_name="Ребенок", on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = "Ребенок"
+        verbose_name_plural = "Дети"
 
 
 class ClothingCompany(models.Model):
     name = models.CharField("Название", max_length=100, unique=True)
-    capital = models.BigIntegerField("Капитал", db_comment="По последним данным")
+    capital = models.BigIntegerField("Капитал", db_comment="По последним данным", null=True)
     # Коментарий к базе данных
     address = models.CharField("Адрес", max_length=100)
 
     class Meta:
         verbose_name = "Компания одежды"
+        verbose_name_plural = "Компании одежды"
 
 
 class TShirt(models.Model):
@@ -100,7 +104,7 @@ class TShirt(models.Model):
         "XL": "Extra Large",
     }
     name = models.CharField("Название", max_length=100)
-    size = models.CharField("Размер", choices=SIZES)
+    size = models.CharField("Размер", choices=SIZES, max_length=20)
     manufacturer = models.ForeignKey(
         ClothingCompany,
         related_name="Производитель",
@@ -149,7 +153,7 @@ class Soul(models.Model):
         ("Bol", "Лысый"),
 
     }
-    hair_color = models.CharField("Цвет волос", choices=HAIR_COLOR)
+    hair_color = models.CharField("Цвет волос", choices=HAIR_COLOR, max_length=20)
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
@@ -168,7 +172,7 @@ class PersonInfo(models.Model):
         ("F", "Female"),
         ("N", "Neither"),
     }
-    sex = models.CharField("Пол", choices=SEX)
+    sex = models.CharField("Пол", choices=SEX, max_length=20)
 
     def __str__(self):
         return self.name
@@ -191,8 +195,8 @@ class Groupe(models.Model):
 
 
 class Student(PersonInfo):
-    group = models.ManyToManyField(Groupe, through=GroupeInfo, related_name="Группа")  # Плюс поля GropeInfo
-    avatar = models.ImageField("Фото", upload_to="media/")  # Изображение (так же раюотает как FileField)
+    group = models.ManyToManyField(Groupe, through='GroupeInfo', related_name="Группа")  # Плюс поля GropeInfo
+    avatar = models.ImageField("Фото", upload_to="media/", null=True)  # Изображение (так же раюотает как FileField)
 
     class Meta:
         verbose_name = "Ученик"
@@ -200,14 +204,14 @@ class Student(PersonInfo):
 
 
 class GroupeInfo(models.Model):
-    student = models.ForeignKey(Student, related_name="Студент", on_delete=models.PROTECT)
-    groupe = models.ForeignKey(Groupe, related_name="Группа", on_delete=models.PROTECT)
+    student = models.ForeignKey(Student, related_name="студент", on_delete=models.PROTECT)
+    groupe = models.ForeignKey(Groupe, related_name="группа", on_delete=models.PROTECT)
     list_number = models.IntegerField("Номер по списку")
 
 
 class Teacher(PersonInfo):
     grade = models.CharField("Степень", max_length=15)
-    email = models.EmailField("Почта")
+    email = models.EmailField("Почта", null=True)
 
     class Meta:
         verbose_name = "Учитель"
@@ -216,7 +220,7 @@ class Teacher(PersonInfo):
 
 class MyPersonSlave(PersonInfo):
     class Meta:
-        proxy = True
+        proxy = False
 
     def do_work(self, task):
         self.task = task
@@ -226,7 +230,7 @@ class MyPersonSlave(PersonInfo):
 
 class Report(models.Model):
     name = models.CharField("Название", max_length=50)
-    data = models.JSONField("Данные")
+    data = models.JSONField("Данные", null=True)
 
     def __str__(self):
         return self.name
