@@ -1,0 +1,76 @@
+models.Child.objects.all()
+<QuerySet [
+    <Child: Байден Аанг Васильевич>,
+    <Child: Бородач Александр Александрович>,
+    <Child: Втильте Анна Никитишна>
+    ]>
+
+>>> child = models.Child(firstname = 'Карл', surname = 'Украл', patronymic = 'Кралович', sex = 'M', age = 33, eye_color = 'Карий', height = 177.0, weight = 67.0, IQ = 90, bread =
+False)
+>>> child.save()
+
+>>> models.Child.objects.all()
+<QuerySet [
+    <Child: Байден Аанг Васильевич>,
+    <Child: Бородач Александр Александрович>,
+    <Child: Втильте Анна Никитишна>,
+    <Child: Украл Карл Кралович>
+    ]>
+
+>>> child.patronymic = 'Коралович'
+>>> child.save()
+
+>>> models.Child.objects.last()
+<Child: Украл Карл Коралович>
+
+>>> core.models.Child.objects.last().age
+33
+
+>>> core.models.Child.objects.all().filter(firstname = 'Аанг')
+<QuerySet [<Child: Байден Аанг Васильевич>]>
+
+>>> core.models.Child.objects.filter(bread = False)
+<QuerySet [<Child: Втильте Анна Никитишна>, <Child: Украл Карл Коралович>]>
+
+>>> core.models.Child.objects.filter(bread = False, sex = 'M')
+<QuerySet [<Child: Украл Карл Коралович>]>
+
+>>> core.models.Child.objects.filter(bread = False).filter(sex = 'F')
+<QuerySet [<Child: Втильте Анна Никитишна>]>
+
+>>> core.models.Child.objects.filter(age__gt = 70)
+<QuerySet [<Child: Байден Аанг Васильевич>]>
+
+>>> core.models.Child.objects.filter(IQ__lt = 70)
+<QuerySet [<Child: Байден Аанг Васильевич>, <Child: Бородач Александр Александрович>]>
+
+>>> core.models.Child.objects.filter(age__gte = 77)
+<QuerySet [<Child: Байден Аанг Васильевич>]>
+>>> core.models.Child.objects.filter(age__gt = 77)
+<QuerySet []>
+
+>>> core.models.Child.objects.get(pk = 2)
+<Child: Бородач Александр Александрович>
+
+>>> core.models.Child.objects.filter(pk__in = [1,2,4])
+<QuerySet [<Child: Байден Аанг Васильевич>, <Child: Бородач Александр Александрович>, <Child: Украл Карл Коралович>]>
+
+>>> models.ClothingCompany.objects.first().delete()
+(1, {'core.ClothingCompany': 1})
+>>> models.ClothingCompany.objects.first()
+
+>>> child = models.Child.objects.first()
+Байден Аанг Васильевич
+>>> child.pk = None
+>>> child.firstname = 'Арсен'
+child.save()
+>>> models.Child.objects.all()
+<QuerySet [<Child: Байден Аанг Васильевич>, <Child: Бородач Александр Александрович>, <Child: Втильте Анна Никитишна>,
+ <Child: Украл Карл Коралович>, <Child: Байден Арсен Васильевич>]>
+
+ >>> child = models.Child.objects.select_related().get(id = 5)
+>>> print(child)
+Байден Арсен Васильевич
+
+>>> models.Child.objects.all().count()
+5
